@@ -9,8 +9,9 @@ import { PostSchema } from "./models/post.js";
 import bcrypt from "bcrypt";
 const jwt = await import("jsonwebtoken");
 import cookieParser from "cookie-parser";
-const secretKey = "HelloThisIsNitinSapra";
-
+// const secretKey = "HelloThisIsNitinSapra";
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 app.use(
   cors({
@@ -25,12 +26,14 @@ app.use("/uploads", express.static("uploads"));
 
 mongoose
   .connect(
-    "mongodb+srv://NitinSapra2000:icOJBxrbwcg88nLr@cluster0.j3uy9v1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    `mongodb+srv://${process.env.mongodb_Username}:${process.env.mongodb_Password}@cluster0.j3uy9v1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
   )
   .then(() => console.log("MongoDb connected"))
   .catch((err) => console.error(err));
 const User = mongoose.model("user", UserSchema);
 const Post = mongoose.model("post", PostSchema);
+
+console.log(process.env.mongodb_Username);
 
 app.post("/register", async (req, res) => {
   try {
@@ -53,7 +56,7 @@ app.post("/login", async (req, res) => {
     const aa = await bcrypt.compare(password, usera.password);
     if (aa) {
       const payload = { userId: usera._id, username: usera.username };
-      const token = jwt.default.sign(payload, secretKey);
+      const token = jwt.default.sign(payload, process.env.secretKey);
       res.cookie("token", token);
       res.status(200).json({ id: usera._id, name: usera.username });
     } else {
@@ -67,7 +70,7 @@ app.post("/login", async (req, res) => {
 
 app.get("/profile", (req, res) => {
   const token = req.cookies.token;
-  const decoded = jwt.default.verify(token, secretKey);
+  const decoded = jwt.default.verify(token, process.env.secretKey);
   res.json(decoded);
 });
 
